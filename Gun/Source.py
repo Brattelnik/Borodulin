@@ -1,9 +1,9 @@
 from random import randrange as rnd, choice
 from tkinter import *
 import math
- 
+
 #print (dir(math))
- 
+
 import time
 root = Tk()
 fr = Frame(root)
@@ -12,11 +12,15 @@ canv = Canvas(root, bg = 'white')
 canv.pack(fill=BOTH,expand=1)
 
 
+"""
+Класс ball описывает мяч.
+"""
 class ball():
-    """ Класс ball описывает мяч. """
 
     def __init__(self,x=40,y=450):
-        """ Конструктор класса ball
+        """
+         Конструктор класса ball
+
         Args:
         x - начальное положение мяча по горизонтали
         y - начальное положение мяча по вертикали
@@ -34,40 +38,58 @@ class ball():
         canv.coords(self.id, self.x-self.r, self.y-self.r, self.x+self.r, self.y+self.r)
 
     def move(self):
-        """ Метод move описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения 
-        self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
-            и стен по краям окна (размер окна 800х600).
         """
-        #FIXME
+     Метод move описывает перемещение мяча за один кадр перерисовки. То есть, обновляет значения
+    self.x и self.y с учетом скоростей self.vx и self.vy, силы гравитации, действующей на мяч,
+        и стен по краям окна (размер окна 800х600).
+        """
+    #FIXME
+
         self.x += self.vx
         self.y -= self.vy
+        self.vy-=2
+
+        if self.x+self.vx > 800 or self.x+self.vx < 0: self.vx*=-1
+        if self.y+self.vy > 550:
+            self.vy*=-0.5
+            if abs(self.vy)<=2:
+                self.vy=0
+                self.y=580
+                self.vx *= 0.8
+
+        self.set_coords()
+
 
     def hittest(self,ob):
-        """ Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте ob.
+        """
+    Функция проверяет сталкивалкивается ли данный обьект с целью, описываемой в обьекте ob.
+    Args:
+        ob: Обьект, с которым проверяется столкновение.
 
-        Args:
-            ob: Обьект, с которым проверяется столкновение.
-        Returns:
-            Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
+    Returns:
+        Возвращает True в случае столкновения мяча и цели. В противном случае возвращает False.
         """
 
-            return False
-
+    #FIXME
+        return ((self.x-ob.x)**2+(self.y-ob.y)**2)**0.5 < self.r+ob.r
+"""
+Класс gun описывает пушку.
+"""
 class gun():
-    """ Класс gun описывает пушку. """
+    def __init__(self):
+        self.f2_power = 10
+        self.f2_on = 0
+        self.an = 1
+        self.id = canv.create_line(20,450,50,420,width=7)
 
-    self.f2_power = 10
-    self.f2_on = 0
-    self.an = 1
-    #self.id = canv.create_line(20,450,50,420,width=7) # FIXME: don't know how to set it...
-         
     def fire2_start(self,event):
         self.f2_on = 1
- 
+
     def fire2_end(self,event):
-        """ Выстрел мячом происходит при отпускании кнопки мыши.
-        Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
         """
+    Выстрел мячом при отпускании кнопки мыши. Начальные значения компонент скорости мяча vx и vy зависят от положения мыши.
+        """
+
         global balls, bullet
         bullet += 1
         new_ball = ball()
@@ -78,19 +100,21 @@ class gun():
         balls += [new_ball]
         self.f2_on = 0
         self.f2_power = 10
- 
- 
+
+
     def targetting (self,event=0):
-        """ Прицеливание. Зависит от положения мыши.
         """
+    Прицеливание. В зависимости от положения мыши
+        """
+
         if event:
-            self.an = math.atan((event.y-450)/(event.x-20))    
+            self.an = math.atan((event.y-450)/(event.x-20))
         if self.f2_on:
             canv.itemconfig(self.id,fill = 'orange')
         else:
             canv.itemconfig(self.id,fill = 'black')
         canv.coords(self.id, 20, 450, 20 + max(self.f2_power, 20) * math.cos(self.an), 450 + max(self.f2_power, 20) * math.sin(self.an))
-         
+
 
     def power_up(self):
         if self.f2_on:
@@ -99,27 +123,33 @@ class gun():
             canv.itemconfig(self.id,fill = 'orange')
         else:
             canv.itemconfig(self.id,fill = 'black')
-        
+
+"""
+Класс target описывает цель.
+"""
 class target():
-    """ Класс target описывает цель. """ 
-    self.points = 0
-    self.live = 1
-    # FIXME: don't work!!! How to call this functions when object is created?
-    #self.id = canv.create_oval(0,0,0,0)
-    #self.id_points = canv.create_text(30,30,text = self.points,font = '28')
-    #self.new_target()
-         
+    def __init__(self):
+        self.points = 0
+        self.live = 1
+        self.id = canv.create_oval(0,0,0,0)
+        self.id_points = canv.create_text(30,30,text = self.points,font = '28')
+        self.new_target()
+
     def new_target(self):
-        """ Инициализация новой цели. """
+        """
+    Инициализация новой цели
+        """
         x = self.x = rnd(600,780)
         y = self.y = rnd(300,550)
         r = self.r = rnd(2,50)
         color = self.color = 'red'
         canv.coords(self.id, x-r,y-r,x+r,y+r)
         canv.itemconfig(self.id, fill = color)
-         
+
     def hit(self,points = 1):
-    """ Попадание шарика в цель. """
+        """
+    Попадание шарика в цель
+        """
         canv.coords(self.id,-10,-10,-10,-10)
         self.points += points
         canv.itemconfig(self.id_points, text = self.points)
@@ -132,16 +162,16 @@ bullet = 0
 balls = []
 
 
-
 def new_game(event=''):
-    global gun, t1, screen1, balls, bullet
+    print('OMFG BOYS')
+    global gun, t1, screen1, balls, bullet, canv
     t1.new_target()
     bullet = 0
     balls = []
-    canv.bind('<Button-1>', g1.fire2_start)
-    canv.bind('<ButtonRelease-1>', g1.fire2_end)
-    canv.bind('<Motion>', g1.targetting)
- 
+    canv.bind('<Button-1>',g1.fire2_start)
+    canv.bind('<ButtonRelease-1>',g1.fire2_end)
+    canv.bind('<Motion>',g1.targetting)
+
     z = 0.03
     t1.live = 1
     while t1.live or balls:
@@ -149,19 +179,21 @@ def new_game(event=''):
             b.move()
             if b.hittest(t1) and t1.live:
                 t1.live = 0
+                balls=[]
                 t1.hit()
-                canv.bind('<Button-1>', '')
-                canv.bind('<ButtonRelease-1>', '')
+                canv.bind('<Button-1>','')
+                canv.bind('<ButtonRelease-1>','')
                 canv.itemconfig(screen1, text = 'Вы уничтожили цель за ' + str(bullet) + ' выстрелов')
         canv.update()
         time.sleep(0.03)
         g1.targetting()
         g1.power_up()
+    print('OMFG BOYS')
     canv.itemconfig(screen1, text = '')
     canv.delete(gun)
-    root.after(750,new_game)
+    canv = Canvas(root, bg = 'white')
+    root.after(1000,new_game)
 
-new_game()   
- 
+new_game()
+
 mainloop()
-
