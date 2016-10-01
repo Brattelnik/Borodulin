@@ -1,7 +1,5 @@
-#include <cstdlib>
+﻿#include <math.h>
 #include <iostream>
-#include <vector>
-#include <algorithm>
 
 using namespace std;
 
@@ -9,14 +7,14 @@ struct Node       //Структура являющаяся звеном спи�
 {
     int x;//Значение x будет передаваться в список
     int y;
-    Node *next, *prev; //Указатели на адреса следующего и предыдущего элементов списка
+    Node *next = NULL, *prev = NULL; //Указатели на адреса следующего и предыдущего элементов списка
 };
 
 
 struct List   //Создаем тип данных Список
 {
-    Node *head;
-    Node *tail;  //Указатели на адреса начала списка и его конца
+    Node *head = NULL;
+    Node *tail = NULL;  //Указатели на адреса начала списка и его конца
 };
 
 
@@ -120,8 +118,6 @@ void deleteFrom(List *list, int index){//Убираем либо голову, �
             temp->next->prev = temp->prev;
             delete temp;
         }
-
-
     }
 }
 
@@ -148,7 +144,6 @@ List *criterion( List * list , bool (*func)(int))
 }
 
 double distance(Node *first, Node *second){
-    if (first == NULL || second == NULL) return std::numeric_limits<double>::max();
     return sqrt((first->x - second->x) * (first->x - second->x) + (first->y - second->y) * (first->y - second->y));
 }
 
@@ -157,7 +152,7 @@ struct Rast{
     double dist;
 };
 
-bool comp(Node *first, Node *second, Node *center){
+bool my_less(Node *first, Node *second, Node *center){
     return distance(first, center) < distance(second, center);
 }
 
@@ -179,18 +174,21 @@ Node *cmass(List *list){
 
 List *task7(List *list){
     Node *center = cmass(list);
+    cout << "center " << center->x << " " << center->y << endl;
     Node *h[6];
     int nh = 0;
     Node *temp = list->head;
     while (temp != NULL){
-        if (nh < 5) nh++;
         h[nh] = temp;
-        for (int i = 0; i + 1 < nh && comp(h[i], h[i + 1], center); i++){
-            std::swap(h[i], h[i + 1]);
-        }
+        for (int i = nh; i - 1 >= 0 && my_less(h[i], h[i - 1], center); i--){
+            std::swap(h[i], h[i - 1]);
+        };
+        if (nh < 5) nh++;
+        temp = temp->next;
     }
-    List *newList = newList;
-    for (int i = 1; i < nh; i++){
+//    printf("nh %d\n", nh);
+    List *newList = new List;
+    for (int i = 0; i < 5 && i < nh; i++){
         add(newList, h[i]->x, h[i]->y);
     }
     return newList;
@@ -204,8 +202,8 @@ int main(void){
     //in Java: public static void main(String args[])
     List *list = new List;
     for (int i = 0; i < 6; i++) {
-        int x = rand()/1000000;
-        int y = rand()/1000000;
+        int x = rand()%1000;
+        int y = rand()%1000;
         add(list, x, y);
     }
     List *new_list = criterion(list, evenElementX);
@@ -216,7 +214,8 @@ int main(void){
 //    print(new_list);
     addIn(list,2,9,1997);
     print(list);
+    List *closest = task7(list);
     //itworksdeleteFrom(list,2);
-    print(list);
+    print(closest);
     return 0;
 }
